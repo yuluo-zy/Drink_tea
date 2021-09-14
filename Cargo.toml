@@ -1,0 +1,47 @@
+[package]
+name = "Drink_tea"
+version = "0.1.1"
+authors = ["Chang Lan <me@changlan.org>"]
+edition = "2018"
+
+[dependencies]
+libc = "*"
+mio = { version = "0.7", features = ["os-util", "os-poll", "udp"] }
+serde = "*"
+serde_derive = "*"
+bincode = "*"
+log = "*"
+env_logger = "*"
+dns-lookup = "*"
+snap = "*"
+rand = "*"
+transient-hashmap = "*"
+ring = "*"
+clap = "2.33.0"
+
+#内存分配器
+jemallocator = { version = "0.3", optional = true }
+
+#条件编译
+cfg-if = "1.0.0"
+
+futures = "0.3.17"
+tokio = { version = "1.11.0", features = ["rt", "signal"] }
+
+# dns 解析
+trust-dns-resolver = "*"
+
+# 硬件支持
+num_cpus = "*"
+
+[target.'cfg(unix)'.dependencies]
+daemonize = "0.4.1"
+
+[features]
+default = [
+    "jemalloc",
+    "multi-threaded"
+]
+# Enable jemalloc for binaries
+jemalloc = ["jemallocator"]
+multi-threaded = ["tokio/rt-multi-thread"]
