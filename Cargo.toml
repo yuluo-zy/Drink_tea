@@ -6,11 +6,8 @@ edition = "2018"
 
 [dependencies]
 libc = "*"
-mio = { version = "0.7", features = ["os-util", "os-poll", "udp"] }
-serde = "*"
-serde_derive = "*"
+serde = { version = "1.0", features = ["derive"] }
 bincode = "*"
-log = "*"
 env_logger = "*"
 dns-lookup = "*"
 snap = "*"
@@ -33,6 +30,9 @@ trust-dns-resolver = "*"
 
 # 硬件支持
 num_cpus = "*"
+
+thiserror = "1.0.29"
+log = { version = "*", features = ["std"] }
 
 [target.'cfg(unix)'.dependencies]
 daemonize = "0.4.1"

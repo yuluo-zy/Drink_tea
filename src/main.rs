@@ -11,6 +11,23 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+#[macro_use]
+extern crate log;
+#[macro_use]
+extern crate serde;
+
+use std::borrow::Borrow;
+use std::future::Future;
+use std::pin::Pin;
+use std::sync::atomic::Ordering;
+
+use env_logger;
+use futures::future::{self, Either};
+use futures::FutureExt;
+use libc;
+use tokio::{self, runtime::Builder};
+
+use crate::common::monitor;
 
 mod cli;
 mod common;
@@ -18,17 +35,7 @@ mod device;
 mod network;
 mod packet;
 mod utils;
-
-use crate::common::monitor;
-use env_logger;
-use futures::future::{self, Either};
-use libc;
-use std::future::Future;
-use std::sync::atomic::Ordering;
-use tokio::{self, runtime::Builder};
-use futures::FutureExt;
-use std::pin::Pin;
-use std::borrow::Borrow;
+mod error;
 
 extern "C" fn handle_signal(_: libc::c_int) {
     network::INTERRUPTED.store(true, Ordering::Relaxed);

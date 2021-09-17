@@ -1,8 +1,8 @@
+use std::fs::File;
 use std::path::Path;
 
 use daemonize::Daemonize;
 use log::error;
-use std::fs::File;
 
 /// Daemonize a server process in a *nix standard way
 ///
