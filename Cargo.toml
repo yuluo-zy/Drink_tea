@@ -13,7 +13,7 @@ dns-lookup = "*"
 snap = "*"
 rand = "*"
 transient-hashmap = "*"
-ring = "*"
+crypto2 = "0.1.2"
 clap = "2.33.0"
 
 #内存分配器
