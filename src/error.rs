@@ -2,8 +2,9 @@ use std::io;
 
 use thiserror::Error;
 
+pub type TeaResult<T> = Result<T, TeaError>;
 #[derive(Error, Debug)]
-pub enum Error {
+pub enum TeaError {
     /// Crypto init error, this is recoverable
     #[error("Crypto initialization error: {0}")]
     CryptoInit(&'static str),
@@ -48,4 +49,13 @@ pub enum Error {
 
     #[error("Name can not be resolved: {0}")]
     NameUnresolvable(String),
+
+    #[error("Mtu set error: {0}")]
+    MtuSetError(&'static str),
+
+    #[error("Invalid network address config : {0}")]
+    InvalidNetAddressConfig(&'static str),
+
+    #[error("Invalid network config : {0}")]
+    InvalidNetConfig(&'static str),
 }
