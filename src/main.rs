@@ -36,6 +36,7 @@ mod network;
 mod packet;
 mod utils;
 mod error;
+mod protocol;
 
 extern "C" fn handle_signal(_: libc::c_int) {
     network::INTERRUPTED.store(true, Ordering::Relaxed);

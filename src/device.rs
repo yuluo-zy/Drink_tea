@@ -252,7 +252,7 @@ impl DeviceControl for Tun {
     #[cfg(target_os = "linux")]
     fn fp_filter_set(&self, val: u8) -> TeaResult<()> {
         let mut fd = fs::File::create(format!("/proc/sys/net/ipv4/conf/{}/rp_filter", &*self.if_name)).expect("udp socket error");
-        match  writeln!(fd, "{}", val) {
+        match writeln!(fd, "{}", val) {
             Ok(_) => Ok(()),
             _ => Err(TeaError::InvalidConfig("fp set error"))
         }
