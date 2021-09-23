@@ -7,6 +7,7 @@ const MTU: &'static str = "1380";
 
 #[cfg(target_os = "linux")]
 use std::path;
+
 #[cfg(target_os = "linux")]
 const IFNAMSIZ: usize = 16;
 #[cfg(target_os = "linux")]
@@ -14,14 +15,38 @@ const IFF_TUN: c_short = 0x0001;
 #[cfg(target_os = "linux")]
 const IFF_NO_PI: c_short = 0x1000;
 #[cfg(all(target_os = "linux", target_env = "musl"))]
-const TUNSETIFF: c_int = 0x400454ca; // TODO: use _IOW('T', 202, int)
+const TUNSETIFF: c_int = 0x400454ca;
 #[cfg(all(target_os = "linux", not(target_env = "musl")))]
-const TUNSETIFF: c_ulong = 0x400454ca; // TODO: use _IOW('T', 202, int)
+const TUNSETIFF: c_ulong = 0x400454ca;
+
+
+#[cfg(target_os = "linux")]
+#[repr(C)]
+pub struct IoctlFlagsData {
+    pub ifr_name: [u8; IFNAMSIZ],
+    pub ifr_flags: c_short,
+}
+
+#[cfg(target_os = "linux")]
+impl IoctlFlagsData {
+    fn ioctl_default(name: u8) -> Self {
+        IoctlFlagsData {
+            ifr_name: {
+                let mut buffer = [0u8; IFNAMSIZ];
+                let full_name = format!("tun{}", name);
+                buffer[..full_name.len()].clone_from_slice(full_name.as_bytes());
+                buffer
+            },
+            ifr_flags: IFF_TUN | IFF_NO_PI,
+        }
+    }
+}
 
 #[cfg(target_os = "macos")]
 use std::mem;
 #[cfg(target_os = "macos")]
 use std::os::unix::io::FromRawFd;
+
 #[cfg(target_os = "macos")]
 const AF_SYS_CONTROL: u16 = 2;
 #[cfg(target_os = "macos")]
@@ -33,16 +58,9 @@ const SYSPROTO_CONTROL: c_int = 2;
 #[cfg(target_os = "macos")]
 const UTUN_OPT_IFNAME: c_int = 2;
 #[cfg(target_os = "macos")]
-const CTLIOCGINFO: c_ulong = 0xc0644e03; // TODO: use _IOWR('N', 3, struct CtlInfo)
+const CTLIOCGINFO: c_ulong = 0xc0644e03;
 #[cfg(target_os = "macos")]
 const UTUN_CONTROL_NAME: &'static str = "com.apple.net.utun_control";
-
-#[cfg(target_os = "linux")]
-#[repr(C)]
-pub struct ioctl_flags_data {
-    pub ifr_name: [u8; IFNAMSIZ],
-    pub ifr_flags: c_short,
-}
 
 #[cfg(target_os = "macos")]
 #[repr(C)]
@@ -51,6 +69,7 @@ pub struct CtlInfo {
     pub ctl_name: [u8; 96],
 }
 
+#[cfg(target_os = "macos")]
 impl Default for CtlInfo {
     fn default() -> Self {
         CtlInfo {
@@ -75,8 +94,9 @@ pub struct SockaddrCtl {
     pub sc_reserved: [u32; 5],
 }
 
+#[cfg(target_os = "macos")]
 impl SockaddrCtl {
-    fn sock_default(id_t: u32, name: u32) -> Self {
+    fn sock_default(id_t: u32, name: u8) -> Self {
         SockaddrCtl {
             sc_id: id_t,
             sc_len: mem::size_of::<SockaddrCtl>() as u8,
@@ -106,17 +126,9 @@ impl Tun {
         let path = path::Path::new("/dev/net/tun");
         let file = fs::OpenOptions::new().read(true).write(true).open(&path)?;
 
-        let mut req = ioctl_flags_data {
-            ifr_name: {
-                let mut buffer = [0u8; IFNAMSIZ];
-                let full_name = format!("tun{}", name);
-                buffer[..full_name.len()].clone_from_slice(full_name.as_bytes());
-                buffer
-            },
-            ifr_flags: IFF_TUN | IFF_NO_PI,
-        };
+        let mut req = IoctlFlagsData::ioctl_default(name);
 
-        let res = unsafe { ioctl(file.as_raw_fd(), TUNSETIFF, &mut req) }; // TUNSETIFF
+        let res = unsafe { ioctl(file.as_raw_fd(), TUNSETIFF, &mut req) };
         if res < 0 {
             return Err(io::Error::last_os_error());
         }
@@ -309,7 +321,6 @@ mod tests {
     #[test]
     fn create_tun_test() {
         assert!(utils::is_root());
-
         let tun = Tun::create(10).unwrap();
         let name = tun.name();
 
