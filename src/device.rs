@@ -125,17 +125,17 @@ impl AsRawFd for Tun {
 }
 
 pub trait DeviceControl {
-    fn mtu_get(&self, ifname: &str) -> TeaResult<usize>;
-    fn mtu_set(&self, ifname: &str, mtu: usize) -> TeaResult<()>;
+    fn mtu_get(&self) -> TeaResult<usize>;
+    fn mtu_set(&self, mtu: usize) -> TeaResult<()>;
 
-    fn addr_get(&self, ifname: &str) -> TeaResult<Ipv4Addr>;
-    fn addr_set(&self, ifname: &str, addr: Ipv4Addr) -> TeaResult<()>;
+    fn addr_get(&self) -> TeaResult<Ipv4Addr>;
+    fn addr_set(&self, addr: Ipv4Addr) -> TeaResult<()>;
 
-    fn netmask_set(&self, ifname: &str, addr: Ipv4Addr) -> TeaResult<()>;
-    fn netmask_get(&self, ifname: &str) -> TeaResult<Ipv4Addr>;
+    fn netmask_set(&self, addr: Ipv4Addr) -> TeaResult<()>;
+    fn netmask_get(&self) -> TeaResult<Ipv4Addr>;
 
-    fn fp_filter(&self, ifname: &str) -> TeaResult<u8>;
-    fn fp_filter_set(&self, ifname: &str, val: u8) -> TeaResult<()>;
+    fn fp_filter(&self) -> TeaResult<u8>;
+    fn fp_filter_set(&self, val: u8) -> TeaResult<()>;
 }
 
 #[cfg(target_os = "linux")]
@@ -166,9 +166,9 @@ impl IfReq {
 
 impl DeviceControl for Tun {
     #[cfg(target_os = "linux")]
-    fn mtu_get(&self, ifname: &str) -> TeaResult<usize> {
+    fn mtu_get(&self) -> TeaResult<usize> {
         let sock = UdpSocket::bind("0.0.0.0:0").expect("udp socket error");
-        let mut if_req = IfReq::new(ifname);
+        let mut if_req = IfReq::new(&*self.if_name);
         let res = unsafe { libc::ioctl(sock.as_raw_fd(), libc::SIOCGIFMTU.try_into().unwrap(), &mut if_req) };
         match res {
             0 => Ok(unsafe { if_req.data.value as usize }),
@@ -176,9 +176,9 @@ impl DeviceControl for Tun {
         }
     }
     #[cfg(target_os = "linux")]
-    fn mtu_set(&self, ifname: &str, mtu: usize) -> TeaResult<()> {
+    fn mtu_set(&self, mtu: usize) -> TeaResult<()> {
         let sock = UdpSocket::bind("0.0.0.0:0").expect("udp socket error");
-        let mut if_req = IfReq::new(ifname);
+        let mut if_req = IfReq::new(&*self.if_name);
         if_req.data.value = mtu as libc::c_int;
         let res = unsafe { libc::ioctl(sock.as_raw_fd(), libc::SIOCSIFMTU.try_into().unwrap(), &mut if_req) };
         match res {
@@ -187,9 +187,9 @@ impl DeviceControl for Tun {
         }
     }
     #[cfg(target_os = "linux")]
-    fn addr_get(&self, ifname: &str) -> TeaResult<Ipv4Addr> {
+    fn addr_get(&self) -> TeaResult<Ipv4Addr> {
         let sock = UdpSocket::bind("0.0.0.0:0").expect("udp socket error");
-        let mut if_req = IfReq::new(ifname);
+        let mut if_req = IfReq::new(&*self.if_name);
         let res = unsafe { libc::ioctl(sock.as_raw_fd(), libc::SIOCGIFADDR.try_into().unwrap(), &mut if_req) };
         match res {
             0 => {
@@ -204,9 +204,9 @@ impl DeviceControl for Tun {
         }
     }
     #[cfg(target_os = "linux")]
-    fn addr_set(&self, ifname: &str, addr: Ipv4Addr) -> TeaResult<()> {
+    fn addr_set(&self, addr: Ipv4Addr) -> TeaResult<()> {
         let sock = UdpSocket::bind("0.0.0.0:0").expect("udp socket error");
-        let mut ifreq = IfReq::new(ifname);
+        let mut ifreq = IfReq::new(&*self.if_name);
         ifreq.data.addr = (libc::AF_INET as libc::c_short, addr);
         let res = unsafe { libc::ioctl(sock.as_raw_fd(), libc::SIOCSIFADDR.try_into().unwrap(), &mut ifreq) };
         match res {
@@ -215,9 +215,9 @@ impl DeviceControl for Tun {
         }
     }
     #[cfg(target_os = "linux")]
-    fn netmask_set(&self, ifname: &str, addr: Ipv4Addr) -> TeaResult<()> {
+    fn netmask_set(&self, addr: Ipv4Addr) -> TeaResult<()> {
         let sock = UdpSocket::bind("0.0.0.0:0").expect("udp socket error");
-        let mut if_req = IfReq::new(ifname);
+        let mut if_req = IfReq::new(&*self.if_name);
         if_req.data.addr = (libc::AF_INET as libc::c_short, addr);
         let res = unsafe { libc::ioctl(sock.as_raw_fd(), libc::SIOCSIFNETMASK.try_into().unwrap(), &mut if_req) };
         match res {
@@ -226,9 +226,9 @@ impl DeviceControl for Tun {
         }
     }
     #[cfg(target_os = "linux")]
-    fn netmask_get(&self, ifname: &str) -> TeaResult<Ipv4Addr> {
+    fn netmask_get(&self) -> TeaResult<Ipv4Addr> {
         let sock = UdpSocket::bind("0.0.0.0:0").expect("udp socket error");
-        let mut if_req = IfReq::new(ifname);
+        let mut if_req = IfReq::new(&*self.if_name);
         let res = unsafe { libc::ioctl(sock.as_raw_fd(), libc::SIOCGIFNETMASK.try_into().unwrap(), &mut if_req) };
         match res {
             0 => {
@@ -243,17 +243,19 @@ impl DeviceControl for Tun {
         }
     }
     #[cfg(target_os = "linux")]
-    fn fp_filter(&self, ifname: &str) -> TeaResult<u8> {
-        let mut fd = fs::File::open(format!("/proc/sys/net/ipv4/conf/{}/rp_filter", ifname)).expect("udp socket error");
+    fn fp_filter(&self) -> TeaResult<u8> {
+        let mut fd = fs::File::open(format!("/proc/sys/net/ipv4/conf/{}/rp_filter", &*self.if_name)).expect("udp socket error");
         let mut contents = String::with_capacity(10);
         fd.read_to_string(&mut contents).expect(" read fp filter error");
         u8::from_str(contents.trim()).map_err(|_| TeaError::InvalidNetConfig("read fp filter error"))
     }
     #[cfg(target_os = "linux")]
-    fn fp_filter_set(&self, ifname: &str, val: u8) -> TeaResult<()> {
-        let mut fd = fs::File::create(format!("/proc/sys/net/ipv4/conf/{}/rp_filter", ifname)).expect("udp socket error");
-        writeln!(fd, "{}", val);
-        Ok(())
+    fn fp_filter_set(&self, val: u8) -> TeaResult<()> {
+        let mut fd = fs::File::create(format!("/proc/sys/net/ipv4/conf/{}/rp_filter", &*self.if_name)).expect("udp socket error");
+        match  writeln!(fd, "{}", val) {
+            Ok(_) => Ok(()),
+            _ => Err(TeaError::InvalidConfig("fp set error"))
+        }
     }
 }
 
@@ -469,6 +471,24 @@ mod tests {
         assert!(output.status.success());
 
         tun.up(1);
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn set_tun() {
+        assert!(utils::is_root());
+        let tun = Tun::create(10).unwrap();
+        let name = tun.name();
+
+
+        let output = process::Command::new("ifconfig")
+            .arg(name)
+            .output()
+            .expect("failed to create tun device");
+        assert!(output.status.success());
+
+        tun.mtu_set(1400).unwrap();
+        assert_eq!(tun.mtu_get().unwrap(), 1400);
     }
 
     #[cfg(target_os = "macos")]
