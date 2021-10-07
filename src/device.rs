@@ -19,7 +19,6 @@ const TUNSETIFF: c_int = 0x400454ca;
 #[cfg(all(target_os = "linux", not(target_env = "musl")))]
 const TUNSETIFF: c_ulong = 0x400454ca;
 
-
 #[cfg(target_os = "linux")]
 #[repr(C)]
 pub struct IoctlFlagsData {
@@ -42,13 +41,13 @@ impl IoctlFlagsData {
     }
 }
 
+use crate::error::{TeaError, TeaResult};
+use std::convert::TryInto;
 #[cfg(target_os = "macos")]
 use std::mem;
+use std::net::{Ipv4Addr, UdpSocket};
 #[cfg(target_os = "macos")]
 use std::os::unix::io::FromRawFd;
-use crate::error::{TeaResult, TeaError};
-use std::net::{Ipv4Addr, UdpSocket};
-use std::convert::TryInto;
 use std::str::FromStr;
 
 #[cfg(target_os = "macos")]
@@ -160,7 +159,10 @@ impl IfReq {
         assert!(name.len() < libc::IF_NAMESIZE);
         let mut ifr_name = [0; libc::IF_NAMESIZE];
         ifr_name[..name.len()].clone_from_slice(name.as_bytes());
-        Self { ifr_name, data: IfReqData { _dummy: [0; 24] } }
+        Self {
+            ifr_name,
+            data: IfReqData { _dummy: [0; 24] },
+        }
     }
 }
 
@@ -169,7 +171,13 @@ impl DeviceControl for Tun {
     fn mtu_get(&self) -> TeaResult<usize> {
         let sock = UdpSocket::bind("0.0.0.0:0").expect("udp socket error");
         let mut if_req = IfReq::new(&*self.if_name);
-        let res = unsafe { libc::ioctl(sock.as_raw_fd(), libc::SIOCGIFMTU.try_into().unwrap(), &mut if_req) };
+        let res = unsafe {
+            libc::ioctl(
+                sock.as_raw_fd(),
+                libc::SIOCGIFMTU.try_into().unwrap(),
+                &mut if_req,
+            )
+        };
         match res {
             0 => Ok(unsafe { if_req.data.value as usize }),
             _ => Err(TeaError::MtuSetError("mtu get error")),
@@ -180,7 +188,13 @@ impl DeviceControl for Tun {
         let sock = UdpSocket::bind("0.0.0.0:0").expect("udp socket error");
         let mut if_req = IfReq::new(&*self.if_name);
         if_req.data.value = mtu as libc::c_int;
-        let res = unsafe { libc::ioctl(sock.as_raw_fd(), libc::SIOCSIFMTU.try_into().unwrap(), &mut if_req) };
+        let res = unsafe {
+            libc::ioctl(
+                sock.as_raw_fd(),
+                libc::SIOCSIFMTU.try_into().unwrap(),
+                &mut if_req,
+            )
+        };
         match res {
             0 => Ok(()),
             _ => Err(TeaError::MtuSetError("mtu set error")),
@@ -190,7 +204,13 @@ impl DeviceControl for Tun {
     fn addr_get(&self) -> TeaResult<Ipv4Addr> {
         let sock = UdpSocket::bind("0.0.0.0:0").expect("udp socket error");
         let mut if_req = IfReq::new(&*self.if_name);
-        let res = unsafe { libc::ioctl(sock.as_raw_fd(), libc::SIOCGIFADDR.try_into().unwrap(), &mut if_req) };
+        let res = unsafe {
+            libc::ioctl(
+                sock.as_raw_fd(),
+                libc::SIOCGIFADDR.try_into().unwrap(),
+                &mut if_req,
+            )
+        };
         match res {
             0 => {
                 let af = unsafe { if_req.data.addr.0 };
@@ -200,7 +220,9 @@ impl DeviceControl for Tun {
                 let ip = unsafe { if_req.data.addr.1 };
                 Ok(ip)
             }
-            _ => Err(TeaError::InvalidNetAddressConfig("Invalid address get error")),
+            _ => Err(TeaError::InvalidNetAddressConfig(
+                "Invalid address get error",
+            )),
         }
     }
     #[cfg(target_os = "linux")]
@@ -208,10 +230,18 @@ impl DeviceControl for Tun {
         let sock = UdpSocket::bind("0.0.0.0:0").expect("udp socket error");
         let mut ifreq = IfReq::new(&*self.if_name);
         ifreq.data.addr = (libc::AF_INET as libc::c_short, addr);
-        let res = unsafe { libc::ioctl(sock.as_raw_fd(), libc::SIOCSIFADDR.try_into().unwrap(), &mut ifreq) };
+        let res = unsafe {
+            libc::ioctl(
+                sock.as_raw_fd(),
+                libc::SIOCSIFADDR.try_into().unwrap(),
+                &mut ifreq,
+            )
+        };
         match res {
             0 => Ok(()),
-            _ => Err(TeaError::InvalidNetAddressConfig("Invalid address set error")),
+            _ => Err(TeaError::InvalidNetAddressConfig(
+                "Invalid address set error",
+            )),
         }
     }
     #[cfg(target_os = "linux")]
@@ -219,42 +249,70 @@ impl DeviceControl for Tun {
         let sock = UdpSocket::bind("0.0.0.0:0").expect("udp socket error");
         let mut if_req = IfReq::new(&*self.if_name);
         if_req.data.addr = (libc::AF_INET as libc::c_short, addr);
-        let res = unsafe { libc::ioctl(sock.as_raw_fd(), libc::SIOCSIFNETMASK.try_into().unwrap(), &mut if_req) };
+        let res = unsafe {
+            libc::ioctl(
+                sock.as_raw_fd(),
+                libc::SIOCSIFNETMASK.try_into().unwrap(),
+                &mut if_req,
+            )
+        };
         match res {
             0 => Ok(()),
-            _ => Err(TeaError::InvalidNetAddressConfig("Invalid netmask address family")),
+            _ => Err(TeaError::InvalidNetAddressConfig(
+                "Invalid netmask address family",
+            )),
         }
     }
     #[cfg(target_os = "linux")]
     fn netmask_get(&self) -> TeaResult<Ipv4Addr> {
         let sock = UdpSocket::bind("0.0.0.0:0").expect("udp socket error");
         let mut if_req = IfReq::new(&*self.if_name);
-        let res = unsafe { libc::ioctl(sock.as_raw_fd(), libc::SIOCGIFNETMASK.try_into().unwrap(), &mut if_req) };
+        let res = unsafe {
+            libc::ioctl(
+                sock.as_raw_fd(),
+                libc::SIOCGIFNETMASK.try_into().unwrap(),
+                &mut if_req,
+            )
+        };
         match res {
             0 => {
                 let af = unsafe { if_req.data.addr.0 };
                 if af as libc::c_int != libc::AF_INET {
-                    return Err(TeaError::InvalidNetAddressConfig("Invalid netmask address family"));
+                    return Err(TeaError::InvalidNetAddressConfig(
+                        "Invalid netmask address family",
+                    ));
                 }
                 let ip = unsafe { if_req.data.addr.1 };
                 Ok(ip)
             }
-            _ => Err(TeaError::InvalidNetAddressConfig("Invalid netmask address family")),
+            _ => Err(TeaError::InvalidNetAddressConfig(
+                "Invalid netmask address family",
+            )),
         }
     }
     #[cfg(target_os = "linux")]
     fn fp_filter(&self) -> TeaResult<u8> {
-        let mut fd = fs::File::open(format!("/proc/sys/net/ipv4/conf/{}/rp_filter", &*self.if_name)).expect("udp socket error");
+        let mut fd = fs::File::open(format!(
+            "/proc/sys/net/ipv4/conf/{}/rp_filter",
+            &*self.if_name
+        ))
+        .expect("udp socket error");
         let mut contents = String::with_capacity(10);
-        fd.read_to_string(&mut contents).expect(" read fp filter error");
-        u8::from_str(contents.trim()).map_err(|_| TeaError::InvalidNetConfig("read fp filter error"))
+        fd.read_to_string(&mut contents)
+            .expect(" read fp filter error");
+        u8::from_str(contents.trim())
+            .map_err(|_| TeaError::InvalidNetConfig("read fp filter error"))
     }
     #[cfg(target_os = "linux")]
     fn fp_filter_set(&self, val: u8) -> TeaResult<()> {
-        let mut fd = fs::File::create(format!("/proc/sys/net/ipv4/conf/{}/rp_filter", &*self.if_name)).expect("udp socket error");
+        let mut fd = fs::File::create(format!(
+            "/proc/sys/net/ipv4/conf/{}/rp_filter",
+            &*self.if_name
+        ))
+        .expect("udp socket error");
         match writeln!(fd, "{}", val) {
             Ok(_) => Ok(()),
-            _ => Err(TeaError::InvalidConfig("fp set error"))
+            _ => Err(TeaError::InvalidConfig("fp set error")),
         }
     }
 }
@@ -263,7 +321,11 @@ impl Tun {
     #[cfg(target_os = "linux")]
     pub fn create(name: u8) -> Result<Tun, io::Error> {
         let path = path::Path::new("/dev/net/tun");
-        let file = fs::OpenOptions::new().read(true).write(true).open(&path).expect("fs open error");
+        let file = fs::OpenOptions::new()
+            .read(true)
+            .write(true)
+            .open(&path)
+            .expect("fs open error");
 
         let mut req = IoctlFlagsData::ioctl_default(name);
 
@@ -298,7 +360,7 @@ impl Tun {
             return Err(io::Error::last_os_error());
         }
 
-        let addr = SockaddrCtl::sock_default(info.ctl_id, name as u32);
+        let addr = SockaddrCtl::sock_default(info.ctl_id, name as u8);
 
         // If connect() is successful, a tun%d device will be created, where "%d"
         // is our sc_unit-1
@@ -479,7 +541,6 @@ mod tests {
         assert!(utils::is_root());
         let tun = Tun::create(10).unwrap();
         let name = tun.name();
-
 
         let output = process::Command::new("ifconfig")
             .arg(name)
