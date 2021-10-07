@@ -3,6 +3,7 @@ use std::io;
 use thiserror::Error;
 
 pub type TeaResult<T> = Result<T, TeaError>;
+
 #[derive(Error, Debug)]
 pub enum TeaError {
     /// Crypto init error, this is recoverable
@@ -58,4 +59,15 @@ pub enum TeaError {
 
     #[error("Invalid network config : {0}")]
     InvalidNetConfig(&'static str),
+
+    #[error("packet to be sent too large to be fragmented")]
+    OversizePacket,
+    #[error("incomplete KCP packet")]
+    IncompletePacket,
+    #[error("invalid KCP command: {0}")]
+    InvalidCommand(u8),
+    #[error("empty queue (try again later)")]
+    NotAvailable,
+    #[error("wrong conv. (expected {expected}, found {found})")]
+    WrongConv { expected: u32, found: u32 },
 }

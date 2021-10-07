@@ -2,6 +2,7 @@ use libc;
 use log::info;
 use std::process::Command;
 
+// 主要是设置网关和 设置路由表，  设置 dns
 pub fn is_root() -> bool {
     unsafe { libc::geteuid() == 0 }
 }
@@ -141,6 +142,7 @@ pub fn delete_default_gateway() -> Result<(), String> {
 }
 
 pub fn get_default_gateway() -> Result<String, String> {
+    // 获取原生网关
     let cmd = if cfg!(target_os = "linux") {
         "ip -4 route list 0/0 | awk '{print $3}'"
     } else if cfg!(target_os = "macos") {

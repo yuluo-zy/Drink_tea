@@ -32,15 +32,15 @@ use crate::common::monitor;
 mod cli;
 mod common;
 mod device;
+mod error;
 mod network;
 mod packet;
-mod utils;
-mod error;
 mod protocol;
+mod utils;
 
-extern "C" fn handle_signal(_: libc::c_int) {
-    network::INTERRUPTED.store(true, Ordering::Relaxed);
-}
+// extern "C" fn handle_signal(_: libc::c_int) {
+//     network::INTERRUPTED.store(true, Ordering::Relaxed);
+// }
 
 fn main() {
     env_logger::init();
@@ -59,22 +59,22 @@ fn main() {
 
     runtime.block_on(async move {
         let abort_signal = monitor::create_signal_monitor();
-        let server: Pin<Box<dyn Future<Output  = ()>>> = match cli::get_args().unwrap() {
-            cli::Args::Client(client) =>Box::pin( network::connect(
-                client.remote_addr.clone(),
-                client.port,
-                client.default_route,
-                client.remote_addr.clone(),
-            )),
-            cli::Args::Server(server) => Box::pin(network::serve(server.port, server.key.clone(), server.dns)),
-        };
+        // let server: Pin<Box<dyn Future<Output  = ()>>> = match cli::get_args().unwrap() {
+        //     cli::Args::Client(client) =>Box::pin( network::connect(
+        //         client.remote_addr.clone(),
+        //         client.port,
+        //         client.default_route,
+        //         client.remote_addr.clone(),
+        //     )),
+        //     cli::Args::Server(server) => Box::pin(network::serve(server.port, server.key.clone(), server.dns)),
+        // };
 
         tokio::pin!(abort_signal);
 
-        match future::select(server, abort_signal).await {
-            Either::Left(((), ..)) => panic!("VPN server exited unexpectly"),
-            Either::Right(_) => (),
-        }
+        // match future::select(server, abort_signal).await {
+        //     Either::Left(((), ..)) => panic!("VPN server exited unexpectly"),
+        //     Either::Right(_) => (),
+        // }
     });
 
     println!("SIGINT/SIGTERM captured. Exit.");

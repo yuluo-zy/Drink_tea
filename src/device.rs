@@ -165,7 +165,7 @@ impl IfReq {
         }
     }
 }
-
+#[cfg(target_os = "linux")]
 impl DeviceControl for Tun {
     #[cfg(target_os = "linux")]
     fn mtu_get(&self) -> TeaResult<usize> {
