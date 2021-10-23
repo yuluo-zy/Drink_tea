@@ -60,6 +60,7 @@ pub enum TeaError {
     #[error("Invalid network config : {0}")]
     InvalidNetConfig(&'static str),
 
+    // kcp 错误定义
     #[error("packet to be sent too large to be fragmented")]
     OversizePacket,
     #[error("incomplete KCP packet")]
@@ -69,5 +70,5 @@ pub enum TeaError {
     #[error("empty queue (try again later)")]
     NotAvailable,
     #[error("wrong conv. (expected {expected}, found {found})")]
-    WrongConv { expected: u32, found: u32 },
+    WrongConv { expected: u16, found: u16 },
 }

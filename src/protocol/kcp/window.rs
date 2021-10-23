@@ -85,6 +85,7 @@ impl<T> Window<T> {
         self.entry[index].is_some()
     }
 
+    /// 返回最后一个数字
     pub fn front(&self) -> Option<&T> {
         self.end.map(|end| {
             let head = self.entry[end].as_ref().unwrap().next;
