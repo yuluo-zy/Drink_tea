@@ -1,0 +1,21 @@
+[package]
+name = "Drink_tea_app"
+version = "0.1.1"
+authors = ["luoluo yu <>"]
+edition = "2021"
+description = "drink tea 主代理实例"
+
+[features]
+default = []
+ansi = ["tracing-subscriber/ansi"]
+
+[dependencies]
+#linkerd-error = { path = "../error" }
+tokio = { version = "1", features = ["time"] }
+tracing = "0.1.29"
+tracing-log = "0.1.2"
+
+[dependencies.tracing-subscriber]
+version = "0.3"
+features = ["env-filter","smallvec", "tracing-log", "json", "parking_lot"]
+

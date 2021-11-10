@@ -1,0 +1,19 @@
+[package]
+name = "Drink_tea_app"
+version = "0.1.1"
+authors = ["luoluo yu <>"]
+edition = "2021"
+description = "drink tea 主代理实例"
+
+[features]
+default = ["multicore"]
+multicore = ["tokio/rt-multi-thread", "num_cpus"]
+[dependencies]
+futures = "0.3.17"
+tokio = { version = "1.11.0", features = ["rt", "signal","net"] }
+num_cpus = { version = "1", optional = true }
+tracing = "0.1.29"
+
+[target.x86_64-unknown-linux-gnu.dependencies]
+#内存分配器
+jemallocator = { version = "0.3", optional = true }

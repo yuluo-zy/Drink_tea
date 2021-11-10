@@ -1,56 +1,63 @@
-[package]
-name = "Drink_tea"
-version = "0.1.1"
-authors = ["Chang Lan <me@changlan.org>"]
-edition = "2018"
+#[package]
+#name = "Drink_tea"
+#version = "0.1.1"
+#authors = ["Chang Lan <me@changlan.org>"]
+#edition = "2018"
+#
+#[dependencies]
+#ring = "0.16.20"
+#libc = "0.2.102"
+#serde = { version = "1.0", features = ["derive"] }
+#serde_derive = "1.0.130"
+#thiserror = "1.0.29"
+#log = { version = "0.4.14", features = ["std"] }
+#derivative = "2.2.0"
+#tinyvec = "1.5.0"
+#
+#
+#
+#mio = "0.7.13"
+#bincode = "*"
+#env_logger = "*"
+#dns-lookup = "*"
+#snap = "*"
+#rand = "*"
+#transient-hashmap = "*"
+#clap = "2.33.0"
+#
+#
+##内存分配器
+#jemallocator = { version = "0.3", optional = true }
+#
+##条件编译
+#cfg-if = "1.0.0"
+#
+#futures = "0.3.17"
+#tokio = { version = "1.11.0", features = ["rt", "signal"] }
+#
+## dns 解析
+#trust-dns-resolver = "*"
+#
+## 硬件支持
+#num_cpus = "*"
+#
+#
+#
+#[target.'cfg(unix)'.dependencies]
+#daemonize = "0.4.1"
+#
+#[features]
+#default = [
+#    "jemalloc",
+#    "multi-threaded"
+#]
+## Enable jemalloc for binaries
+#jemalloc = ["jemallocator"]
+#multi-threaded = ["tokio/rt-multi-thread"]
 
-[dependencies]
-ring = "0.16.20"
-libc = "0.2.102"
-serde = { version = "1.0", features = ["derive"] }
-serde_derive = "1.0.130"
-thiserror = "1.0.29"
-log = { version = "0.4.14", features = ["std"] }
-derivative = "2.2.0"
-tinyvec = "1.5.0"
-bytes = "0.5.6"
-num_enum = "0.5.1"
+[workspace]
 
-mio = "0.7.13"
-bincode = "*"
-env_logger = "*"
-dns-lookup = "*"
-snap = "*"
-rand = "*"
-transient-hashmap = "*"
-clap = "2.33.0"
-
-
-#内存分配器
-jemallocator = { version = "0.3", optional = true }
-
-#条件编译
-cfg-if = "1.0.0"
-
-futures = "0.3.17"
-tokio = { version = "1.11.0", features = ["rt", "signal"] }
-
-# dns 解析
-trust-dns-resolver = "*"
-
-# 硬件支持
-num_cpus = "*"
-
-
-
-[target.'cfg(unix)'.dependencies]
-daemonize = "0.4.1"
-
-[features]
-default = [
-    "jemalloc",
-    "multi-threaded"
+members = [
+    "drink_tea_app",
+    "drink_tea/tracing"
 ]
-# Enable jemalloc for binaries
-jemalloc = ["jemallocator"]
-multi-threaded = ["tokio/rt-multi-thread"]
