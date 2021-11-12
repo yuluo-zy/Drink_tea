@@ -1,9 +1,9 @@
 [package]
-name = "Drink_tea_app"
+name = "Drink_tea_tracing"
 version = "0.1.1"
 authors = ["luoluo yu <>"]
 edition = "2021"
-description = "drink tea 主代理实例"
+description = "drink tea 日志追踪"
 
 [features]
 default = []
