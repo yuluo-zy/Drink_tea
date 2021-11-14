@@ -1,6 +1,6 @@
 [package]
 name = "Drink_tea_app"
-version = "0.1.1"
+version = "0.1.0"
 authors = ["luoluo yu <>"]
 edition = "2021"
 description = "drink tea 主代理实例"

@@ -59,5 +59,6 @@
 
 members = [
     "drink_tea_app",
-    "drink_tea/tracing"
+    "drink_tea/tracing",
+    "drink_tea/error"
 ]

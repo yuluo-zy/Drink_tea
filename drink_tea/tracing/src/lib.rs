@@ -6,15 +6,15 @@ pub mod test;
 mod uptime;
 
 use self::uptime::Uptime;
-use linkerd_error::Error;
+use tea_error::Error;
 use std::{env, str};
 use tracing::{Dispatch, Subscriber};
 use tracing_subscriber::{fmt::format, prelude::*, registry::LookupSpan, reload, EnvFilter, Layer};
 
-const ENV_LOG_LEVEL: &str = "LINKERD2_PROXY_LOG";
-const ENV_LOG_FORMAT: &str = "LINKERD2_PROXY_LOG_FORMAT";
+const ENV_LOG_LEVEL: &str = "TEA_PROXY_LOG";
+const ENV_LOG_FORMAT: &str = "TEA_PROXY_LOG_FORMAT";
 
-const DEFAULT_LOG_LEVEL: &str = "warn,linkerd=info";
+const DEFAULT_LOG_LEVEL: &str = "warn,tea=info";
 const DEFAULT_LOG_FORMAT: &str = "PLAIN";
 
 #[derive(Debug, Default)]

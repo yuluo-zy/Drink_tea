@@ -1,0 +1,9 @@
+[package]
+name = "tea_error"
+version = "0.1.0"
+authors = ["luoluo yu <>"]
+edition = "2021"
+description = "drink tea 错误定义"
+
+[dependencies]
+futures = { version = "0.3", default-features = false }

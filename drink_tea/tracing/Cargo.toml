@@ -1,6 +1,6 @@
 [package]
-name = "Drink_tea_tracing"
-version = "0.1.1"
+name = "tea_tracing"
+version = "0.1.0"
 authors = ["luoluo yu <>"]
 edition = "2021"
 description = "drink tea 日志追踪"
@@ -10,7 +10,7 @@ default = []
 ansi = ["tracing-subscriber/ansi"]
 
 [dependencies]
-#linkerd-error = { path = "../error" }
+tea_error = { path = "../error" }
 tokio = { version = "1", features = ["time"] }
 tracing = "0.1.29"
 tracing-log = "0.1.2"

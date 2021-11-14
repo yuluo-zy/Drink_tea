@@ -1,4 +1,4 @@
-use linkerd_error::Error;
+use tea_error::Error;
 use tracing::trace;
 use tracing_subscriber::{reload, EnvFilter, Registry};
 
@@ -10,13 +10,13 @@ impl Handle {
         Self(handle)
     }
 
-    pub fn set_from(&self, bytes: impl AsRef<[u8]>) -> Result<(), String> {
+    pub fn set_from(&mut self, bytes: impl AsRef<[u8]>) -> Result<(), String> {
         let body = std::str::from_utf8(bytes.as_ref()).map_err(|e| format!("{}", e))?;
         trace!(request.body = ?body);
         self.set_level(body).map_err(|e| format!("{}", e))
     }
 
-    pub fn set_level(&self, level: impl AsRef<str>) -> Result<(), Error> {
+    pub fn set_level(&mut self, level: impl AsRef<str>) -> Result<(), Error> {
         let level = level.as_ref();
         let filter = level.parse::<EnvFilter>()?;
         self.0.reload(filter)?;
