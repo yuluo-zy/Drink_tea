@@ -828,8 +828,8 @@ fn diff(x: u32, y: u32) -> u32 {
 ///
 /// Panics if `buf` has a length less than 4.
 /// 从原始缓冲区获取对话 ID。如果 `buf` 的长度小于 4，则会出现恐慌
-pub fn conv_from_raw(buf: &[u8]) -> u32 {
-    u32::from_le_bytes(buf[..4].try_into().unwrap())
+pub fn conv_from_raw(buf: &[u8]) -> u16 {
+    u16::from_le_bytes(buf[..2].try_into().unwrap())
 }
 
 /// Check if the given raw buffer `buf` contains the first PUSH packet, which marks the start
@@ -837,14 +837,14 @@ pub fn conv_from_raw(buf: &[u8]) -> u32 {
 /// 检查给定的原始缓冲区 `buf` 是否包含第一个 PUSH 数据包，它标志着新连接的开始。
 pub fn first_push_packet(mut buf: &[u8]) -> bool {
     while buf.len() >= OVERHEAD as usize {
-        let _conv = buf.get_u32_le();
+        let _conv = buf.get_u16_le();
         let cmd = buf.get_u8();
         let _frg = buf.get_u8();
         let _wnd = buf.get_u16_le();
         let _ts = buf.get_u32_le();
         let sn = buf.get_u32_le();
         let _una = buf.get_u32_le();
-        let len = buf.get_u32_le() as usize;
+        let len = buf.get_u16_le() as usize;
         if cmd == Command::Push as u8 {
             return sn == 0;
         }

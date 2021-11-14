@@ -2,7 +2,7 @@ use super::*;
 
 /// By default, disable logging in modules that are expected to error in tests.
 pub const DEFAULT_LOG: &str = "warn,\
-                           trea=debug,";
+                           tea=debug,";
 
 pub fn trace_subscriber(default: impl ToString) -> (Dispatch, Handle) {
     let log_level = env::var("TEA_PROXY_LOG")

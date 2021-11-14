@@ -16,9 +16,6 @@ pub trait Recover<E: Into<Error> = Error> {
     fn recover(&self, err: E) -> Result<Self::Backoff, E>;
 }
 
-#[derive(Copy, Clone, Debug, Default)]
-pub struct Immediately(());
-
 // === impl Recover ===
 
 impl<E, B, F> Recover<E> for F
@@ -33,6 +30,9 @@ where
         (*self)(err)
     }
 }
+
+#[derive(Copy, Clone, Debug, Default)]
+pub struct Immediately(());
 
 // === impl Immediately ===
 
@@ -57,5 +57,3 @@ impl<E: Into<Error>> Recover<E> for Immediately {
         Ok(stream::iter(Immediately(())))
     }
 }
-
-
