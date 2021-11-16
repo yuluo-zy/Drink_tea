@@ -113,6 +113,8 @@ fn initiate(
     }
 }
 
+// 使用kcp -tun 并转 udp  调度 + fec-> tcp +
+
 pub async fn connect(host: String, port: u16, default: bool, secret: String) {
     info!("Working in client mode.");
     let remote_ip = resolve(&host).unwrap();

@@ -1,0 +1,19 @@
+[package]
+name = "tea_app"
+version = "0.1.0"
+authors = ["luoluo yu <>"]
+edition = "2021"
+description = "drink tea 应用"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tea_error = {path = "../error"}
+tea_app_core = {path = "./core"}
+tea_app_inbound = {path = "./inbound"}
+tea_app_outbound = {path = "./outbound"}
+regex = "1.5.4"
+thiserror = "1.0"
+tokio = { version = "1", features = ["rt"] }
+tokio-stream = { version = "0.1.8", features = ["time", "sync"] }
+tracing = "0.1.29"

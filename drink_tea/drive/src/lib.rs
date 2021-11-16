@@ -1,3 +1,6 @@
+#![deny(warnings, rust_2018_idioms)]
+#![forbid(unsafe_code)]
+
 use libc::*;
 use std::io::{Read, Write};
 use std::os::unix::io::{AsRawFd, RawFd};
@@ -165,6 +168,7 @@ impl IfReq {
         }
     }
 }
+
 #[cfg(target_os = "linux")]
 impl DeviceControl for Tun {
     #[cfg(target_os = "linux")]
@@ -296,7 +300,7 @@ impl DeviceControl for Tun {
             "/proc/sys/net/ipv4/conf/{}/rp_filter",
             &*self.if_name
         ))
-        .expect("udp socket error");
+            .expect("udp socket error");
         let mut contents = String::with_capacity(10);
         fd.read_to_string(&mut contents)
             .expect(" read fp filter error");
@@ -309,7 +313,7 @@ impl DeviceControl for Tun {
             "/proc/sys/net/ipv4/conf/{}/rp_filter",
             &*self.if_name
         ))
-        .expect("udp socket error");
+            .expect("udp socket error");
         match writeln!(fd, "{}", val) {
             Ok(_) => Ok(()),
             _ => Err(TeaError::InvalidConfig("fp set error")),
@@ -467,6 +471,7 @@ impl Tun {
     }
 }
 
+// 添加数据压缩
 impl Read for Tun {
     #[cfg(target_os = "linux")]
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {

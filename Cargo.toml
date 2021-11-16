@@ -60,5 +60,10 @@
 members = [
     "drink_tea_app",
     "drink_tea/tracing",
-    "drink_tea/error"
+    "drink_tea/error",
+    "drink_tea/app/core",
+    "drink_tea/app/inbound",
+    "drink_tea/app/outbound",
+    "drink_tea/app",
+    "drink_tea/drive"
 ]
