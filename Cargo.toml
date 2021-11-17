@@ -60,12 +60,20 @@
 members = [
     "drink_tea_app",
     "drink_tea/addr",
-    "drink_tea/dns",
-    "drink_tea/tracing",
-    "drink_tea/error",
     "drink_tea/app/core",
     "drink_tea/app/inbound",
     "drink_tea/app/outbound",
     "drink_tea/app",
-    "drink_tea/drive"
+    "drink_tea/cache",
+    "drink_tea/conditional",
+    "drink_tea/dns",
+    "drink_tea/drive",
+    "drink_tea/duplex",
+    "drink_tea/errno",
+    "drink_tea/error",
+    "drink_tea/io",
+    "drink_tea/tracing",
+    "drink_tea/signal",
+    "drink_tea/system",
+
 ]

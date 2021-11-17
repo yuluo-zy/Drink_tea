@@ -1,0 +1,12 @@
+[package]
+name = "duplex"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bytes = "1"
+futures = { version = "0.3", default-features = false }
+tokio = { version = "1", features = ["io-util"] }
+pin-project = "1"
+tracing = "0.1.29"
+tea_io = { path = "../io" }

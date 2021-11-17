@@ -1,0 +1,19 @@
+[package]
+name = "tea_dns"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tea_error = { path = "../error"}
+thiserror = "1.0"
+untrusted = "0.7"
+futures = { version = "0.3", default-features = false }
+tracing = "0.1.29"
+trust-dns-resolver = "0.21.0-alpha.4"
+tokio = { version = "1", features = ["rt", "sync", "time"] }
+
+[dev-dependencies]
+tokio-test = "*"
