@@ -6,6 +6,7 @@ use std::task::Context;
 use tea_errno::Errno;
 use tokio::io::{AsyncRead, AsyncWrite, ReadBuf, Result};
 
+// 对于传输数据的统计
 pub trait Sensor {
     fn record_read(&mut self, sz: usize);
     fn record_write(&mut self, sz: usize);
@@ -34,6 +35,7 @@ impl<T, S: Sensor> SensorIo<T, S> {
 impl<T: AsyncRead + AsyncWrite, S: Sensor> AsyncRead for SensorIo<T, S> {
     fn poll_read(self: Pin<&mut Self>, cx: &mut Context<'_>, buf: &mut ReadBuf<'_>) -> Poll<()> {
         let this = self.project();
+        // 读取了 n 个字节并填充到了对应的 buf之中
         let prev_filled = buf.filled().len();
         ready!(this.sensor.record_error(this.io.poll_read(cx, buf)))?;
         this.sensor.record_read(buf.filled().len() - prev_filled);

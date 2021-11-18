@@ -103,9 +103,10 @@ impl<I: io::Write> io::Write for ScopedIo<I> {
 
 impl<I: io::AsyncWrite> io::AsyncWrite for ScopedIo<I> {
     #[inline]
-    fn poll_shutdown(self: Pin<&mut Self>, cx: &mut Context<'_>) -> io::Poll<()> {
+    fn poll_write(self: Pin<&mut Self>, cx: &mut Context<'_>, buf: &[u8]) -> io::Poll<usize> {
         let this = self.project();
-        this.io.poll_shutdown(cx).map_err(this.scope.err())
+        let scope = this.scope;
+        this.io.poll_write(cx, buf).map_err(scope.err())
     }
 
     #[inline]
@@ -115,10 +116,9 @@ impl<I: io::AsyncWrite> io::AsyncWrite for ScopedIo<I> {
     }
 
     #[inline]
-    fn poll_write(self: Pin<&mut Self>, cx: &mut Context<'_>, buf: &[u8]) -> io::Poll<usize> {
+    fn poll_shutdown(self: Pin<&mut Self>, cx: &mut Context<'_>) -> io::Poll<()> {
         let this = self.project();
-        let scope = this.scope;
-        this.io.poll_write(cx, buf).map_err(scope.err())
+        this.io.poll_shutdown(cx).map_err(this.scope.err())
     }
 
     #[inline]

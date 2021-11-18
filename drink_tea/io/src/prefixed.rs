@@ -12,6 +12,7 @@ pub struct PrefixedIo<I> {
     #[pin]
     io: I,
 }
+// 还是针对数据流的包装
 
 impl<I> PrefixedIo<I> {
     pub fn new(prefix: impl Into<Bytes>, io: I) -> Self {
@@ -65,7 +66,9 @@ impl<I: io::AsyncRead> io::AsyncRead for PrefixedIo<I> {
             this.io.poll_read(cx, buf)
         } else {
             let len = cmp::min(buf.remaining(), peeked_len);
+            // 把 peeked 数据写入 buf
             buf.put_slice(&this.prefix.as_ref()[..len]);
+            // 前进内部游标
             this.prefix.advance(len);
             // If we've finally emptied the prefix, drop it so we don't
             // hold onto the allocated memory any longer. We won't peek
