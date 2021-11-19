@@ -1,0 +1,17 @@
+[package]
+name = "tea_dns_resolve"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tea_error = {path = "../../error"}
+tea_addr = { path = "../../addr"}
+tea_dns = { path = "../../dns"}
+tea_proxy_core = { path = "../core"}
+tokio = { version = "1", features = ["sync"] }
+tokio-stream = { version = "0.1.8", features = ["sync"]}
+tower = "0.4.11"
+tracing = "0.1.29"
+futures = { version = "0.3", default-features = false }
