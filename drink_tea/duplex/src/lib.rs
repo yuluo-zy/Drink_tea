@@ -126,6 +126,7 @@ where
         // If the last invocation returned pending while flushing, resume
         // flushing and only proceed when the flush is complete.
         if self.flushing {
+            // 如果对应通道还没有写入完全, 则等待对方写完
             ready!(self.poll_flush(dst, cx))?;
         }
 
@@ -198,7 +199,7 @@ where
 
     /// Attempts to read and buffer data from the underlying stream, returning
     /// the number of bytes read. If the buffer already has data, no new data
-    /// will be read.
+    /// will be read. 读底层数据, 本身读入数据
     fn poll_buffer(&mut self, cx: &mut Context<'_>) -> io::Poll<Buffered> {
         // Buffer data only if no data is buffered.
         //
@@ -229,7 +230,7 @@ where
     }
 
     /// Attempts to flush the destination. `self.flushing` is set to true iff the
-    /// flush operation did not complete.
+    /// flush operation did not complete. 写入目标
     fn poll_flush<U: AsyncWrite + Unpin>(
         &mut self,
         dst: &mut HalfDuplex<U>,

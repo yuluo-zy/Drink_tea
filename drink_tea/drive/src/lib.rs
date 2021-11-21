@@ -6,6 +6,8 @@ use std::io::{Read, Write};
 use std::os::unix::io::{AsRawFd, RawFd};
 use std::{fs, io, process};
 
+#[derive(Clone, Debug)]
+pub struct Config {}
 const MTU: &'static str = "1380";
 
 #[cfg(target_os = "linux")]
@@ -300,7 +302,7 @@ impl DeviceControl for Tun {
             "/proc/sys/net/ipv4/conf/{}/rp_filter",
             &*self.if_name
         ))
-            .expect("udp socket error");
+        .expect("udp socket error");
         let mut contents = String::with_capacity(10);
         fd.read_to_string(&mut contents)
             .expect(" read fp filter error");
@@ -313,7 +315,7 @@ impl DeviceControl for Tun {
             "/proc/sys/net/ipv4/conf/{}/rp_filter",
             &*self.if_name
         ))
-            .expect("udp socket error");
+        .expect("udp socket error");
         match writeln!(fd, "{}", val) {
             Ok(_) => Ok(()),
             _ => Err(TeaError::InvalidConfig("fp set error")),
@@ -521,7 +523,7 @@ impl Write for Tun {
 #[cfg(test)]
 mod tests {
     use crate::device::*;
-    use crate::utils;
+    use crate::{utils, Tun};
     use std::process;
 
     #[cfg(target_os = "linux")]
