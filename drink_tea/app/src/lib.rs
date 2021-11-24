@@ -1,10 +1,12 @@
-use tea_app_core::trace;
-use tokio::sync::mpsc;
-use tracing::{debug, info, info_span, Instrument};
-
+use tea_app_core::config::ServerConfig;
+use tea_app_core::Error;
+use tea_app_core::{dns, drain};
+use tea_app_core::{trace, ProxyRuntime};
 use tea_app_inbound;
 use tea_app_outbound;
 use tea_drive;
+use tokio::sync::mpsc;
+use tracing::{debug, info, info_span, Instrument};
 
 mod env;
 
@@ -12,9 +14,11 @@ mod env;
 pub struct Config {
     pub outbound: tea_app_outbound::Config,
     pub inbound: tea_app_inbound::Config,
+    pub dns: dns::Config,
     pub tun: tea_drive::Config,
 }
 
+pub struct App {}
 impl Config {
     pub fn try_from_env() -> Result<Self, env::EnvError> {
         env::Env.try_config()
@@ -28,6 +32,27 @@ impl Config {
         bind_out: Bout,
         shutdown_tx: mpsc::UnboundedSender<()>,
         log_level: trace::Handle,
-    ) {
+    ) -> Result<App, Error>
+    where
+        Bin: Bind<ServerConfig> + 'static,
+        Bin::Addrs: Param<Remote<ClientAddr>> + Param<Local<ServerAddr>> + Param<OrigDstAddr>,
+        Bout: Bind<ServerConfig> + 'static,
+        Bout::Addrs: Param<Remote<ClientAddr>> + Param<Local<ServerAddr>> + Param<OrigDstAddr>,
+    {
+        let Config {
+            outbound,
+            inbound,
+            dns,
+            tun,
+        } = self;
+
+        debug!("building app");
+        let dns = dns.build();
+
+        let (drain_tx, drain_rx) = drain::channel();
+
+        let runtime = ProxyRuntime {
+            drain: drain_rx.clone(),
+        };
     }
 }
