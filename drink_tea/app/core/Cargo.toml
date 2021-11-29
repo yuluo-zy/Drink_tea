@@ -19,3 +19,5 @@ tokio = { version = "1", features = ["macros", "sync", "parking_lot"]}
 tokio-stream = { version = "0.1.8", features = ["time"] }
 tea_addr = {path = "../../addr"}
 tea_dns = {path = "../../dns"}
+tea_tracing = {path = "../../tracing"}
+tea_error = { path = "../../error"}

@@ -12,6 +12,7 @@ tea_error = {path = "../error"}
 tea_app_core = {path = "./core"}
 tea_app_inbound = {path = "./inbound"}
 tea_app_outbound = {path = "./outbound"}
+tea_drive = { path = "../drive"}
 regex = "1.5.4"
 thiserror = "1.0"
 tokio = { version = "1", features = ["rt"] }
