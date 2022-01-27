@@ -1,13 +1,15 @@
-use tea_app_core::config::ServerConfig;
-use tea_app_core::Error;
-use tea_app_core::{dns, drain};
-use tea_app_core::{trace, ProxyRuntime};
+pub use tea_app_core::{self as core};
+use tea_app_core::{
+    config::ServerConfig,
+    dns, drain, trace,
+    transport::{listen::Bind, ClientAddr, Local, OrigDstAddr, Remote, ServerAddr},
+    Error, ProxyRuntime,
+};
 use tea_app_inbound;
 use tea_app_outbound;
 use tea_drive;
 use tokio::sync::mpsc;
 use tracing::{debug, info, info_span, Instrument};
-
 mod env;
 
 #[derive(Clone, Debug)]

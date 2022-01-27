@@ -21,3 +21,4 @@ tea_addr = {path = "../../addr"}
 tea_dns = {path = "../../dns"}
 tea_tracing = {path = "../../tracing"}
 tea_error = { path = "../../error"}
+tea_proxy_transport = { path = "../../proxy/transport"}

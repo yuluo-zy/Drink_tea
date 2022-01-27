@@ -1,6 +1,7 @@
 pub mod addr_match;
 pub mod config;
 pub mod dns;
+pub mod transport;
 
 pub use drain;
 pub use tea_addr::{self as addr, Addr, NameAddr};

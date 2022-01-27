@@ -4,7 +4,7 @@
 mod network;
 
 pub use self::network::Network;
-use std::{collections::HashSet, hash::Hash, sync::Arc, time};
+use std::{collections::HashSet, hash::Hash, sync::Arc};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ServerPolicy {
