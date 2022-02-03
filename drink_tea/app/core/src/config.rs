@@ -1,4 +1,5 @@
 use std::time::Duration;
+use tea_proxy_transport::Keepalive;
 
 #[derive(Clone, Debug)]
 pub struct ServerConfig {
@@ -9,10 +10,10 @@ pub struct ServerConfig {
 
 #[derive(Clone, Debug)]
 pub struct ConnectConfig {
-    pub backoff: ExponentialBackoff,
+    // pub backoff: ExponentialBackoff,
     pub timeout: Duration,
     pub keepalive: Keepalive,
-    pub transport: TransportSetting,
+    // pub transport: TransportSetting,
 }
 
 #[derive(Clone, Debug)]

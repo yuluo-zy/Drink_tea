@@ -1,3 +1,5 @@
+use tea_app_core::transport::addrs::OrigDstAddr;
+
 #[derive(Clone, Debug, Error)]
 #[error("unauthorized connection on unknown port {0}")]
 pub struct DeniedUnknownPort(pub u16);

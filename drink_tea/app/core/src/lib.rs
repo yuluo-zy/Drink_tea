@@ -1,6 +1,7 @@
 pub mod addr_match;
 pub mod config;
 pub mod dns;
+pub mod svc;
 pub mod transport;
 
 pub use drain;

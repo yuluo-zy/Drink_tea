@@ -1,6 +1,4 @@
-use crate::addrs::{Remote, ServerAddr};
 use crate::Keepalive;
-use tea_stack::Param;
 
 #[derive(Copy, Clone, Debug)]
 pub struct ConnectTcp {

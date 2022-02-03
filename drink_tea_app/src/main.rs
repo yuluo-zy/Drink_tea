@@ -1,5 +1,6 @@
 use tea_app::core::transport::listen::BindTcp;
 use tea_app::Config;
+use tea_signal as signal;
 use tea_tracing as trace;
 use tokio::sync::mpsc;
 pub use tracing::{debug, error, info, warn};
@@ -43,5 +44,16 @@ fn main() {
 
         info!("Inbound interface on {}", app.inbound_addr());
         info!("Outbound interface on {}", app.outbound_addr());
+
+        let drain = app.spawn();
+        tokio::select! {
+            _ = signal::shutdown() => {
+                info!("Received shutdown signal");
+            }
+            _ = shutdown_rx.recv() => {
+                info!("Received shutdown via admin interface");
+            }
+        }
+        drain.drain().await;
     })
 }

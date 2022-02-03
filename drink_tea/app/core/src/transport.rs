@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 pub mod allow_ips;
 pub mod labels;
 pub use self::allow_ips::AllowIps;
