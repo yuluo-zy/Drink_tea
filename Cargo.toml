@@ -80,5 +80,6 @@ members = [
     "drink_tea/server_policy",
     "drink_tea/signal",
     "drink_tea/system",
+    "drink_tea_kcp"
 
 ]
