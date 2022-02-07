@@ -616,6 +616,7 @@ impl KcpCore {
 
             Poll::Ready(Ok(()))
         } else {
+            // 唤醒 当还没有 准备好 发送数据到 windows 中的时候, 我们去唤醒其他的线程
             let _ = self.flush_notify_tx.try_send(());
             self.send_waker = Some(cx.waker().clone());
             log::trace!("poll_send pending");
@@ -783,7 +784,7 @@ impl KcpCore {
 
     pub async fn flush<IO: KcpIo>(&mut self, io: &IO) -> KcpResult<()> {
         // 会判断上一次刷新（flush）时间与这次的间隔，来判断是否调用flush函数来完成工作
-        // ikcp_flush函数本质就是根据当前的情况，封装KCP报文，将这些报文放到发送缓冲区snd_buf中
+        // flush函数本质就是根据当前的情况，封装KCP报文，将这些报文放到发送缓冲区snd_buf中 并真正发送出去
         self.now = now_millis();
 
         if i32diff(self.now, self.last_measure) >= 500 && self.push_counter >= 100 {

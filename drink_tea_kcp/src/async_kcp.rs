@@ -210,6 +210,7 @@ impl<IO: KcpIo + Send + Sync + 'static> KcpHandle<IO> {
     }
 
     pub async fn connect(&self) -> KcpResult<KcpStream> {
+        // 这个是 直接连接
         let stream_id = self.find_new_stream_id().await?;
         let (tx, rx) = bounded(1);
         let core = Arc::new(Mutex::new(KcpCore::new(
@@ -255,6 +256,7 @@ impl<IO: KcpIo + Send + Sync + 'static> KcpHandle<IO> {
         sessions: Arc<Mutex<HashMap<u16, KcpSession>>>,
         dead_rx: Receiver<u16>,
     ) -> KcpResult<()> {
+        // 在当前所有会话中 删除掉 这个 stream id
         loop {
             let stream_id = dead_rx.recv().await.map_err(|_| {
                 KcpError::Shutdown("cleaning but the kcp handle is closed".to_string())
@@ -270,15 +272,18 @@ impl<IO: KcpIo + Send + Sync + 'static> KcpHandle<IO> {
         flush_notify_rx: Receiver<()>,
         dead_tx: Sender<u16>,
     ) -> KcpResult<()> {
+        // 通过定时器和 周期值 来 向对端写入数据
         let stream_id = core.lock().await.get_stream_id();
         loop {
             let interval = {
                 let mut core = core.lock().await;
+                // 这里 触发 数据刷新 和 数据发送
                 if let Err(e) = core.flush(&*io).await {
                     if let KcpError::Shutdown(ref s) = e {
                         // Release the mutex
                         drop(core);
                         log::warn!("kcp core is shutting down: {}", s);
+                        // 如果 数据 发送中出现问题, 则使用通道来进行通知
                         let _ = dead_tx.send(stream_id).await;
                         return Err(e);
                     } else {
@@ -295,10 +300,11 @@ impl<IO: KcpIo + Send + Sync + 'static> KcpHandle<IO> {
                 let _ = flush_notify_rx.recv().await;
                 log::trace!("updater wake up now!");
             };
+            // 创建一个 计时器
             let tick = async move {
                 Timer::after(Duration::from_millis(interval as u64)).await;
             };
-
+            // 类似于 select 哪一个先完成 哪一个先返回, 这里是为了 突击数据发送给远方
             notify.race(tick).await;
         }
     }
@@ -310,7 +316,11 @@ impl<IO: KcpIo + Send + Sync + 'static> KcpHandle<IO> {
         accept_tx: Sender<KcpStream>,
         dead_tx: Sender<u16>,
     ) -> KcpResult<()> {
+        // 这个函数 主要作用 是
+        // 接受 io 中的数据 并解析成 数据包压入 kcp 协议栈中
+        // 如果是新连接报文 则创建 kcp 协议栈 并 创建 kcp 状态机 并发送给执行器
         loop {
+            // 获取数据报文
             let packet = match io.recv_packet().await {
                 Ok(packet) => packet,
                 Err(e) => {
@@ -326,11 +336,13 @@ impl<IO: KcpIo + Send + Sync + 'static> KcpHandle<IO> {
             }
 
             let stream_id = KcpSegment::peek_stream_id(&packet);
+            // 获取 流 的 id 号
             let mut cursor = packet.as_slice();
             let mut segments = Vec::new();
             let mut invalid_packet = false;
             let mut new_stream = false;
 
+            // 开始解析 stream 的数据
             while cursor.has_remaining() {
                 match KcpSegment::decode(&cursor) {
                     Ok(segment) => {
@@ -340,6 +352,7 @@ impl<IO: KcpIo + Send + Sync + 'static> KcpHandle<IO> {
                             break;
                         }
                         // First PUSH or PING packet
+                        // 这里是处理首次连接
                         if (segment.command == CMD_PUSH || segment.command == CMD_PING)
                             && segment.sequence == 0
                         {
@@ -356,6 +369,7 @@ impl<IO: KcpIo + Send + Sync + 'static> KcpHandle<IO> {
                 }
             }
 
+            // 如果存在 异常报文 则整个 报文完整放弃
             if invalid_packet {
                 continue;
             }
@@ -366,13 +380,17 @@ impl<IO: KcpIo + Send + Sync + 'static> KcpHandle<IO> {
                 let mut x = sessions.lock().await;
 
                 if let Some(session) = sessions.get_mut(&stream_id) {
+                    // 如果已经存在, 那么我们就引用计数
                     session.core.clone()
                 } else {
+                    // 如果不存在的话, 我们首先去判断是否是有一个 新的报文连接包
                     if new_stream {
                         let (tx, rx) = bounded(1);
+                        // 重新创建一个 kcp 协议栈
                         let core = Arc::new(Mutex::new(
                             KcpCore::new(stream_id, config.clone(), tx).unwrap(),
                         ));
+                        // 创建一个 新的 任务
                         let update_task = {
                             let core = core.clone();
                             let io = io.clone();
@@ -396,6 +414,7 @@ impl<IO: KcpIo + Send + Sync + 'static> KcpHandle<IO> {
             };
 
             if is_new_stream {
+                // 同时创建 kcp 的缓存队列, 并进行传递
                 let stream = KcpStream {
                     core: core.clone(),
                     read_buffer: None,
@@ -409,7 +428,7 @@ impl<IO: KcpIo + Send + Sync + 'static> KcpHandle<IO> {
                     return Ok(());
                 };
             }
-
+            // 到这 该创建新 kcp 协议栈的动作已经完成, 我们现在只需要将 接受到的 数据包 放入 core 中的队列中
             core.lock().await.input(segments).unwrap();
         }
     }
